@@ -124,3 +124,6 @@ web/
                       Contact · Login · Register · Dashboard ·
                       WorkerDashboard · FactoryDashboard · NotFound
 ```
+
+
+<!-- QA fixes applied: vercel.json SPA routing, SEO meta, accessibility, form validation, contact page, shift normalization -->
