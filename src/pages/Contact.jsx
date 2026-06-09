@@ -5,7 +5,7 @@ import { TextField, TextArea } from "../components/ui/Field";
 
 const CONTACTS = [
   { icon: Icon.Mail, label: "Email", value: "hello@sketu.app" },
-  { icon: Icon.Phone, label: "Phone", value: "+91 00000 00000" },
+  { icon: Icon.Phone, label: "Phone", value: "Available on request" },
   { icon: Icon.MapPin, label: "Based in", value: "India" },
 ];
 
