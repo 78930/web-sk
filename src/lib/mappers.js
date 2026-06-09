@@ -36,7 +36,7 @@ export function mapJob(item) {
     area: item?.area || "",
     role: item?.title || item?.role || "",
     title: item?.title || item?.role || "",
-    shift: item?.shift || "",
+        shift: item?.shift ? item.shift.charAt(0).toUpperCase() + item.shift.slice(1).toLowerCase() : "",
     pay: formatPay(payMin, payMax),
     payMin,
     payMax,
