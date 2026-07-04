@@ -5,6 +5,7 @@ import Icon from "../components/ui/Icons";
 import Pill from "../components/ui/Pill";
 import JobCard from "../components/jobs/JobCard";
 import { SkeletonCard, EmptyState } from "../components/ui/States";
+import { useAuth } from "../context/AuthContext";
 import { listJobs } from "../services/jobs";
 
 const FEATURES = [
@@ -51,6 +52,10 @@ function Stat({ value, label }) {
 }
 
 export default function Home() {
+  const { isAuthenticated, user } = useAuth();
+  const isFactory = user?.type === "factory";
+  const isWorker = user?.type === "worker";
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -58,7 +63,7 @@ export default function Home() {
   useEffect(() => {
     let active = true;
     listJobs()
-      .then((items) => active && setJobs(items))
+      .then(({ items }) => active && setJobs(items))
       .catch(() => active && setFailed(true))
       .finally(() => active && setLoading(false));
     return () => {
@@ -90,7 +95,7 @@ export default function Home() {
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-6xl">
               Hire factory workers.
               <br />
-              <span className="text-brand-600 dark:text-brand-400">Find factory jobs.</span>
+              <span className="text-gradient-accent">Find factory jobs.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
               Sketu connects factories with skilled and semi-skilled workers. Post jobs, search
@@ -98,11 +103,11 @@ export default function Home() {
               workforce.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link to="/jobs" className="btn-primary w-full sm:w-auto">
-                Browse jobs <Icon.ArrowRight className="h-4 w-4" />
+              <Link to={isWorker ? "/dashboard" : "/jobs"} className="btn-accent w-full sm:w-auto">
+                {isWorker ? "My dashboard" : "Browse jobs"} <Icon.ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/register" className="btn-secondary w-full sm:w-auto">
-                Post a job
+              <Link to={isFactory ? "/dashboard" : "/register"} className="btn-secondary w-full sm:w-auto">
+                {isFactory ? "Go to dashboard" : "Post a job"}
               </Link>
             </div>
           </div>
@@ -252,10 +257,13 @@ export default function Home() {
                 Create a free account and post your first job or build your worker profile today.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link to="/register" className="btn w-full bg-white text-brand-700 hover:bg-brand-50 sm:w-auto">
-                  Create free account
+                <Link
+                  to={isAuthenticated ? "/dashboard" : "/register"}
+                  className="btn w-full bg-white font-bold text-accent-700 hover:bg-accent-50 sm:w-auto"
+                >
+                  {isAuthenticated ? "Go to dashboard" : "Create free account"}
                 </Link>
-                <Link to="/jobs" className="btn w-full border border-white/40 text-white hover:bg-white/10 sm:w-auto">
+                <Link to="/jobs" className="btn w-full border border-white/40 font-semibold text-white hover:bg-white/10 sm:w-auto">
                   Explore jobs
                 </Link>
               </div>

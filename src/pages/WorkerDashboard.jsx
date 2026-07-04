@@ -8,6 +8,7 @@ import { Loading, EmptyState, ErrorState } from "../components/ui/States";
 import { useAuth } from "../context/AuthContext";
 import { getWorkerProfile, updateWorkerProfile } from "../services/workers";
 import { listMyApplications } from "../services/applications";
+import { listSavedJobs } from "../services/savedJobs";
 
 function csv(arr) {
   return (arr || []).join(", ");
@@ -16,10 +17,26 @@ function toArr(str) {
   return str.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
+function profileCompleteness(p) {
+  if (!p) return { pct: 0, missing: [] };
+  const checks = [
+    [!!p.headline, "headline"],
+    [(p.skills || []).length > 0, "skills"],
+    [(p.preferredAreas || []).length > 0, "preferred areas"],
+    [(p.preferredRoles || []).length > 0, "preferred roles"],
+    [p.experienceYears > 0, "experience years"],
+    [p.salaryMin > 0, "minimum salary"],
+  ];
+  const done = checks.filter(([ok]) => ok).length;
+  const missing = checks.filter(([ok]) => !ok).map(([, label]) => label);
+  return { pct: Math.round((done / checks.length) * 100), missing };
+}
+
 export default function WorkerDashboard() {
   const { token, user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [apps, setApps] = useState([]);
+  const [savedCount, setSavedCount] = useState(() => listSavedJobs().length);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -31,17 +48,18 @@ export default function WorkerDashboard() {
   const load = () => {
     setLoading(true);
     setError(null);
-    Promise.all([getWorkerProfile(token), listMyApplications(token)])
-      .then(([p, a]) => {
-        setProfile(p);
-        setApps(a);
+    Promise.allSettled([getWorkerProfile(token), listMyApplications(token)])
+      .then(([profileResult, appsResult]) => {
+        if (profileResult.status === "fulfilled") setProfile(profileResult.value);
+        else setError(profileResult.reason?.message || "Failed to load profile");
+        if (appsResult.status === "fulfilled") setApps(appsResult.value);
       })
-      .catch((err) => setError(err.message || "Failed to load your dashboard"))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
     load();
+    setSavedCount(listSavedJobs().length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -97,10 +115,12 @@ export default function WorkerDashboard() {
   if (error) return <div className="container-page section"><ErrorState message={error} onRetry={load} /></div>;
 
   const stats = [
-    { label: "Applications", value: apps.length, icon: Icon.Inbox },
-    { label: "Shortlisted", value: apps.filter((a) => a.status === "SHORTLISTED").length, icon: Icon.Star },
-    { label: "Hired", value: apps.filter((a) => a.status === "HIRED").length, icon: Icon.CheckCircle },
+    { label: "Applications", value: apps.length, icon: Icon.Inbox, to: null },
+    { label: "Shortlisted", value: apps.filter((a) => a.status === "SHORTLISTED").length, icon: Icon.Star, to: null },
+    { label: "Hired", value: apps.filter((a) => a.status === "HIRED").length, icon: Icon.CheckCircle, to: null },
+    { label: "Saved jobs", value: savedCount, icon: Icon.Bookmark, to: "/saved-jobs" },
   ];
+  const { pct, missing } = profileCompleteness(profile);
 
   return (
     <>
@@ -111,14 +131,52 @@ export default function WorkerDashboard() {
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             Hello, {profile?.fullName || user?.name}
           </h1>
-          <div className="mt-6 grid grid-cols-3 gap-4 sm:max-w-lg">
-            {stats.map((s) => (
-              <div key={s.label} className="card p-4">
-                <s.icon className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{s.value}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">{s.label}</div>
-              </div>
-            ))}
+
+          {/* Profile completeness */}
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/50 sm:max-w-lg">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                Profile {pct}% complete
+                {profile?.isOpenToWork ? (
+                  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Open to work
+                  </span>
+                ) : null}
+              </span>
+              <span className="text-sm text-slate-500">{pct}%</span>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+              <div
+                className="h-2 rounded-full bg-brand-600 transition-all"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            {missing.length > 0 && pct < 100 ? (
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Add: {missing.slice(0, 3).join(" · ")}{missing.length > 3 ? ` +${missing.length - 3} more` : ""}
+              </p>
+            ) : pct === 100 ? (
+              <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">Your profile is complete — factories can find you!</p>
+            ) : null}
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:max-w-2xl">
+            {stats.map((s) =>
+              s.to ? (
+                <Link key={s.label} to={s.to} className="card p-4 hover:border-brand-300 transition-colors">
+                  <s.icon className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                  <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{s.value}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{s.label}</div>
+                </Link>
+              ) : (
+                <div key={s.label} className="card p-4">
+                  <s.icon className="h-5 w-5 text-brand-600 dark:text-brand-400" />
+                  <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{s.value}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{s.label}</div>
+                </div>
+              )
+            )}
           </div>
         </div>
       </section>
@@ -205,10 +263,34 @@ export default function WorkerDashboard() {
                       </div>
                       <StatusPill status={a.status} />
                     </div>
+                    {a.status === "HIRED" && (a.proposedPay != null || a.joiningDate) ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {a.proposedPay != null ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            <Icon.Wallet className="h-3 w-3" /> Proposed pay: ₹{a.proposedPay.toLocaleString("en-IN")}
+                          </span>
+                        ) : null}
+                        {a.joiningDate ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300">
+                            <Icon.Clock className="h-3 w-3" /> Joining: {new Date(a.joiningDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                     {a.note ? (
                       <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
                         "{a.note}"
                       </p>
+                    ) : null}
+                    {a.factoryPhone ? (
+                      <div className="mt-3">
+                        <a
+                          href={`tel:${a.factoryPhone}`}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300"
+                        >
+                          <Icon.Phone className="h-3.5 w-3.5" /> Factory HR: {a.factoryPhone}
+                        </a>
+                      </div>
                     ) : null}
                     {a.job?.id ? (
                       <Link to={`/jobs/${a.job.id}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">

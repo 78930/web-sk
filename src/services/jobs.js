@@ -4,10 +4,10 @@ import { mapJob } from "../lib/mappers";
 export async function listJobs(params = {}) {
   const search = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
-    if (value) search.set(key, value);
+    if (value !== undefined && value !== null && value !== "") search.set(key, String(value));
   });
   const response = await apiRequest(`/api/jobs?${search.toString()}`);
-  return response.items.map(mapJob);
+  return { items: response.items.map(mapJob), pagination: response.pagination };
 }
 
 export async function getJobDetails(jobId) {
@@ -20,6 +20,24 @@ export async function createJob(token, payload) {
     method: "POST",
     token,
     body: payload,
+  });
+  return mapJob(response);
+}
+
+export async function updateJob(token, jobId, payload) {
+  const response = await apiRequest(`/api/jobs/${jobId}`, {
+    method: "PATCH",
+    token,
+    body: payload,
+  });
+  return mapJob(response);
+}
+
+export async function updateJobStatus(token, jobId, status) {
+  const response = await apiRequest(`/api/jobs/${jobId}`, {
+    method: "PATCH",
+    token,
+    body: { status },
   });
   return mapJob(response);
 }

@@ -40,7 +40,7 @@ export async function requestLoginOtp({ phone }) {
 }
 
 export async function loginWithOtp({ phone, otp }) {
-  const auth = await apiRequest("/api/auth/verify-otp", {
+  const auth = await apiRequest("/api/auth/verify-login-otp", {
     method: "POST",
     body: { phone, otp },
   });

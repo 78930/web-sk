@@ -41,7 +41,6 @@ export default function Login() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [devOtp, setDevOtp] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
@@ -69,7 +68,6 @@ export default function Login() {
       const res = await requestLoginOtp({ phone: phone.trim() });
       setOtpSent(true);
       setInfo(res.message || "OTP sent.");
-      if (res.otpCode) setDevOtp(res.otpCode); // dev convenience from backend
     } catch (err) {
       setError(err.message || "Could not send OTP");
     } finally {
@@ -131,9 +129,10 @@ export default function Login() {
               </div>
 
               {error ? (
-                <p className="mt-5 rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-200">
-                  {error}
-                </p>
+                <div className="alert-error mt-5 rounded-xl">
+                  <Icon.Alert className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
               ) : null}
 
               {mode === "name" ? (
@@ -153,7 +152,7 @@ export default function Login() {
                   <form onSubmit={otpSent ? verifyOtp : sendOtp} className="space-y-4">
                     <TextField label="Phone number" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Registered phone" required disabled={otpSent} />
                     {otpSent ? (
-                      <TextField label="Enter OTP" inputMode="numeric" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" hint={devOtp ? `Dev code: ${devOtp}` : info} required />
+                      <TextField label="Enter OTP" inputMode="numeric" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code" hint={info} required />
                     ) : info ? (
                       <p className="text-xs text-slate-400">{info}</p>
                     ) : null}
@@ -162,7 +161,7 @@ export default function Login() {
                     </button>
                   </form>
                   {otpSent ? (
-                    <button onClick={() => { setOtpSent(false); setOtp(""); setDevOtp(null); }} className="btn-ghost w-full text-sm">
+                    <button onClick={() => { setOtpSent(false); setOtp(""); setInfo(null); }} className="btn-ghost w-full text-sm">
                       Change phone number
                     </button>
                   ) : null}

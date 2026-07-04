@@ -12,6 +12,9 @@ import Talent from "./pages/Talent";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import WorkerDetail from "./pages/WorkerDetail";
+import SavedJobs from "./pages/SavedJobs";
+import AdminVerifications from "./pages/AdminVerifications";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -24,7 +27,30 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
-        <Route path="/talent" element={<Talent />} />
+        <Route
+          path="/talent"
+          element={
+            <ProtectedRoute role="factory">
+              <Talent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workers/:id"
+          element={
+            <ProtectedRoute role="factory">
+              <WorkerDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved-jobs"
+          element={
+            <ProtectedRoute role="worker">
+              <SavedJobs />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
@@ -32,6 +58,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/verifications"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminVerifications />
             </ProtectedRoute>
           }
         />

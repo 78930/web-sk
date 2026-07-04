@@ -4,9 +4,15 @@ import Icon from "../components/ui/Icons";
 import { TextField, TextArea } from "../components/ui/Field";
 
 const CONTACTS = [
+<<<<<<< HEAD
   { icon: Icon.Mail, label: "Email", value: "hello@sketu.app" },
   { icon: Icon.Phone, label: "Phone", value: "Available on request" },
   { icon: Icon.MapPin, label: "Based in", value: "India" },
+=======
+  { icon: Icon.Mail, label: "Email", value: "hello@sketu.in" },
+  { icon: Icon.MapPin, label: "Based in", value: "Jeedimetla, Hyderabad" },
+  { icon: Icon.Clock, label: "Response time", value: "Within 24 hours" },
+>>>>>>> 105e7d2 (web)
 ];
 
 export default function Contact() {

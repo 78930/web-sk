@@ -26,3 +26,20 @@ export async function hireApplication(token, applicationId, payload) {
     body: payload,
   });
 }
+
+export async function rejectApplication(token, applicationId) {
+  const response = await apiRequest(`/api/applications/${applicationId}/reject`, {
+    method: "POST",
+    token,
+  });
+  return mapJobApplication(response);
+}
+
+export async function shortlistWorkerForJob(token, jobId, workerProfileId) {
+  const response = await apiRequest(`/api/jobs/${jobId}/shortlist-worker`, {
+    method: "POST",
+    token,
+    body: { workerProfileId },
+  });
+  return mapJobApplication(response);
+}

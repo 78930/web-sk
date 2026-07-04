@@ -80,6 +80,15 @@ export const Icon = {
   Alert: (p) => (
     <svg {...base} {...p}><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17h.01" /></svg>
   ),
+  Pencil: (p) => (
+    <svg {...base} {...p}><path d="M17 3a2.83 2.83 0 014 4L7.5 20.5 3 21l.5-4.5z" /></svg>
+  ),
+  Refresh: (p) => (
+    <svg {...base} {...p}><path d="M1 4v6h6M23 20v-6h-6" /><path d="M20.5 9A9 9 0 005.2 5.2M3.5 15A9 9 0 0018.8 18.8" /></svg>
+  ),
+  Bookmark: (p) => (
+    <svg {...base} {...p}><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
+  ),
 };
 
 export default Icon;

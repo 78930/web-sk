@@ -31,12 +31,14 @@ export function AuthProvider({ children }) {
         setProfile(fresh.profile);
         saveSession(session.token, fresh.user);
       })
-      .catch(() => {
-        // token invalid/expired — wipe it
-        clearSession();
-        setToken(null);
-        setUser(null);
-        setProfile(null);
+      .catch((err) => {
+        // Only evict session on confirmed 401 — network errors keep the user logged in
+        if (err?.status === 401) {
+          clearSession();
+          setToken(null);
+          setUser(null);
+          setProfile(null);
+        }
       })
       .finally(() => setInitializing(false));
   }, []);

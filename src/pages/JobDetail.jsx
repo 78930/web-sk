@@ -7,6 +7,7 @@ import { TextArea } from "../components/ui/Field";
 import { Loading, ErrorState } from "../components/ui/States";
 import { useAuth } from "../context/AuthContext";
 import { getJobDetails, applyToJob } from "../services/jobs";
+import { isJobSaved, toggleSavedJob } from "../services/savedJobs";
 
 export default function JobDetail() {
   const { id } = useParams();
@@ -20,10 +21,12 @@ export default function JobDetail() {
   const [note, setNote] = useState("");
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState(null); // { type, text }
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setSaved(isJobSaved(id));
     getJobDetails(id)
       .then((j) => active && setJob(j))
       .catch((err) => active && setError(err.message || "Job not found"))
@@ -66,10 +69,24 @@ export default function JobDetail() {
       <Seo title={job.title} path={`/jobs/${id}`} description={`${job.title} at ${job.companyName} — ${job.area}. Apply on Sketu.`} />
 
       <div className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-        <div className="container-page py-6">
+        <div className="container-page flex items-center justify-between py-6">
           <Link to="/jobs" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-brand-600 dark:text-slate-400">
             <Icon.ArrowRight className="h-4 w-4 rotate-180" /> Back to jobs
           </Link>
+          {job ? (
+            <button
+              onClick={() => setSaved(toggleSavedJob(job))}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
+                saved
+                  ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+              }`}
+              aria-label={saved ? "Remove from saved jobs" : "Save job"}
+            >
+              <Icon.Star className="h-4 w-4" />
+              {saved ? "Saved" : "Save job"}
+            </button>
+          ) : null}
         </div>
       </div>
 

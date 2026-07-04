@@ -2,7 +2,9 @@
 // view-friendly objects. Kept field-for-field compatible with the mobile app.
 
 export function roleToUserType(role) {
-  return role === "FACTORY" ? "factory" : "worker";
+  if (role === "FACTORY") return "factory";
+  if (role === "ADMIN") return "admin";
+  return "worker";
 }
 
 export function mapAuthUser(input) {
@@ -76,6 +78,8 @@ export function mapWorker(item) {
     certifications: arr(item?.certifications) || [],
     availableNow: item?.isOpenToWork ?? true,
     isOpenToWork: item?.isOpenToWork ?? true,
+    verificationStatus: item?.verificationStatus ?? "UNVERIFIED",
+    verificationNote: item?.verificationNote ?? "",
   };
 }
 
@@ -127,6 +131,11 @@ export function mapJobApplication(item) {
     updatedAt: item?.updatedAt || "",
     worker: mapWorker(item?.workerProfile || {}),
     job: item?.job && typeof item.job === "object" ? mapJob(item.job) : undefined,
+    proposedPay: item?.hire?.proposedPay != null ? Number(item.hire.proposedPay) : undefined,
+    joiningDate: item?.hire?.joiningDate ? String(item.hire.joiningDate) : undefined,
+    hireStatus: item?.hire?.status || undefined,
+    workerPhone: item?.workerPhone ? String(item.workerPhone) : undefined,
+    factoryPhone: item?.factoryPhone ? String(item.factoryPhone) : undefined,
   };
 }
 
