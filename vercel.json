@@ -1,11 +1,5 @@
 {
   "rewrites": [
-<<<<<<< HEAD
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
-=======
-    { "source": "/(.*)", "destination": "/" }
-  ]
-}
->>>>>>> 105e7d2 (web)
