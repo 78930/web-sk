@@ -20,3 +20,11 @@ export async function bootstrapAdmin({ secret, name, phone }) {
     body: { secret, name, phone },
   });
 }
+
+export async function getWorkerDocuments({ token, workerId }) {
+  return apiRequest(`/api/admin/workers/${workerId}/documents`, { token });
+}
+
+export async function getWorkerDocument({ token, workerId, type }) {
+  return apiRequest(`/api/admin/workers/${workerId}/documents/${type}`, { token });
+}

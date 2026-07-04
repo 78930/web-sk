@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getVerifications, updateVerification } from "../services/admin";
+import { getVerifications, updateVerification, getWorkerDocuments, getWorkerDocument } from "../services/admin";
 
 const STATUS_TABS = [
   { value: "",           label: "All" },
@@ -65,7 +65,105 @@ function RejectModal({ profile, onClose, onConfirm }) {
   );
 }
 
+const DOC_LABELS = {
+  AADHAAR:         { label: "Aadhaar Card",           icon: "🪪" },
+  PAN:             { label: "PAN Card",               icon: "💳" },
+  DRIVING_LICENSE: { label: "Driver's Licence",       icon: "🚗" },
+  BANK_PASSBOOK:   { label: "Bank Passbook / Cheque", icon: "🏦" },
+  RESUME_PDF:      { label: "Resume PDF",             icon: "📄" },
+};
+
+function DocumentsModal({ workerId, workerName, onClose }) {
+  const { token } = useAuth();
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewing, setViewing] = useState(null); // type string being fetched
+
+  useEffect(() => {
+    getWorkerDocuments({ token, workerId })
+      .then((res) => setDocs(res.items || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [token, workerId]);
+
+  async function viewDoc(type) {
+    setViewing(type);
+    try {
+      const res = await getWorkerDocument({ token, workerId, type });
+      const binary = atob(res.imageBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: res.mimeType });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      alert("Could not load document. Please try again.");
+    } finally {
+      setViewing(null);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Documents</h3>
+            <p className="mt-0.5 text-sm text-slate-500">{workerName}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-2">
+          {loading ? (
+            <div className="py-8 text-center text-sm text-slate-400">Loading documents…</div>
+          ) : docs.length === 0 ? (
+            <div className="rounded-xl bg-slate-50 py-8 text-center text-sm text-slate-400 dark:bg-slate-800">
+              No documents uploaded yet.
+            </div>
+          ) : (
+            docs.map((doc) => {
+              const meta = DOC_LABELS[doc.type] || { label: doc.type, icon: "📎" };
+              return (
+                <div
+                  key={doc.type}
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">{meta.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{meta.label}</p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(doc.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => viewDoc(doc.type)}
+                    disabled={viewing === doc.type}
+                    className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                  >
+                    {viewing === doc.type ? "Opening…" : "View"}
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <button onClick={onClose} className="btn-secondary mt-5 w-full">Close</button>
+      </div>
+    </div>
+  );
+}
+
 function ProfileCard({ profile, onAction }) {
+  const [showDocs, setShowDocs] = useState(false);
   const skills = profile.skills?.slice(0, 4) || [];
   const extra = (profile.skills?.length || 0) - 4;
 
@@ -158,6 +256,22 @@ function ProfileCard({ profile, onAction }) {
         >
           Revoke verification
         </button>
+      )}
+
+      {/* Documents button */}
+      <button
+        onClick={() => setShowDocs(true)}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+      >
+        📎 View Documents
+      </button>
+
+      {showDocs && (
+        <DocumentsModal
+          workerId={profile._id}
+          workerName={profile.fullName || "Worker"}
+          onClose={() => setShowDocs(false)}
+        />
       )}
     </div>
   );
