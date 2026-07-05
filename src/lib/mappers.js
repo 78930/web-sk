@@ -10,12 +10,14 @@ export function roleToUserType(role) {
 export function mapAuthUser(input) {
   const profile = input.profile || undefined;
   const type = roleToUserType(input.user.role);
-  const fallbackName = type === "factory" ? "Factory User" : "Worker User";
+  const fallbackName = type === "factory" ? "Factory User" : type === "admin" ? "Admin" : "Worker User";
 
   const name =
     type === "factory"
-      ? profile?.companyName || profile?.hrName || fallbackName
-      : profile?.fullName || fallbackName;
+      ? profile?.companyName || profile?.hrName || input.user.name || fallbackName
+      : type === "admin"
+      ? input.user.name || fallbackName
+      : profile?.fullName || input.user.name || fallbackName;
 
   return {
     id: String(input.user.id || input.user._id || ""),

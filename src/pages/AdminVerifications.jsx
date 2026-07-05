@@ -162,6 +162,34 @@ function DocumentsModal({ workerId, workerName, onClose }) {
   );
 }
 
+const DOC_TYPE_LABELS = {
+  AADHAAR: "Aadhaar",
+  PAN: "PAN",
+  DRIVING_LICENSE: "DL",
+  BANK_PASSBOOK: "Passbook",
+  RESUME_PDF: "Resume",
+};
+
+function DocCountBadge({ count, types }) {
+  if (count === 0) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+        No docs
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+      {count} doc{count !== 1 ? "s" : ""}
+      {types?.length > 0 && (
+        <span className="text-green-600/70 dark:text-green-500/70">
+          · {types.map((t) => DOC_TYPE_LABELS[t] || t).join(", ")}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function ProfileCard({ profile, onAction }) {
   const [showDocs, setShowDocs] = useState(false);
   const skills = profile.skills?.slice(0, 4) || [];
@@ -176,11 +204,24 @@ function ProfileCard({ profile, onAction }) {
             {(profile.fullName || "W")[0].toUpperCase()}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-slate-900 dark:text-white">{profile.fullName || "—"}</span>
               <StatusBadge status={profile.verificationStatus} />
             </div>
-            <span className="text-xs text-slate-500">{profile.userPhone || "No phone"}</span>
+            <div className="mt-1 flex items-center gap-2 flex-wrap">
+              {profile.userPhone ? (
+                <a
+                  href={`tel:${profile.userPhone}`}
+                  className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+                >
+                  {profile.userPhone}
+                </a>
+              ) : (
+                <span className="text-xs text-slate-400">No phone</span>
+              )}
+              <span className="text-slate-300 dark:text-slate-700">·</span>
+              <DocCountBadge count={profile.docCount ?? 0} types={profile.docTypes ?? []} />
+            </div>
           </div>
         </div>
       </div>
@@ -264,6 +305,11 @@ function ProfileCard({ profile, onAction }) {
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
       >
         📎 View Documents
+        {(profile.docCount ?? 0) > 0 && (
+          <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+            {profile.docCount}
+          </span>
+        )}
       </button>
 
       {showDocs && (

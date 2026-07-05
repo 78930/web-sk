@@ -54,10 +54,12 @@ export async function loginWithOtp({ phone, otp }) {
 
 export async function getMe(token) {
   const result = await apiRequest("/api/auth/me", { token });
-  const type = result.user.role === "FACTORY" ? "factory" : "worker";
+  const type = result.user.role === "FACTORY" ? "factory" : result.user.role === "ADMIN" ? "admin" : "worker";
   const profile = result.profile
     ? type === "factory"
       ? mapFactoryProfile(result.profile)
+      : type === "admin"
+      ? null
       : mapWorkerProfile(result.profile)
     : null;
 
