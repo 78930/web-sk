@@ -77,8 +77,8 @@ export default function Navbar() {
             </NavLink>
           ))}
           {user?.type === "admin" && (
-            <NavLink to="/admin/verifications" className={linkClass}>
-              Verifications
+            <NavLink to="/admin" className={linkClass}>
+              Admin Panel
             </NavLink>
           )}
         </div>
@@ -141,11 +141,11 @@ export default function Navbar() {
             ))}
             {user?.type === "admin" && (
               <NavLink
-                to="/admin/verifications"
+                to="/admin"
                 onClick={() => setOpen(false)}
                 className={mobileLinkClass}
               >
-                Verifications
+                Admin Panel
               </NavLink>
             )}
           </div>

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
@@ -16,7 +16,7 @@ export default function Layout({ children }) {
     <div className="flex min-h-screen flex-col">
       <ScrollToTop />
       <Navbar />
-      <main id="main-content" className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1">{children ?? <Outlet />}</main>
       <Footer />
     </div>
   );

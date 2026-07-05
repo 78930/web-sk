@@ -6,6 +6,6 @@ import FactoryDashboard from "./FactoryDashboard";
 // Picks the right dashboard based on the logged-in user's role.
 export default function Dashboard() {
   const { user } = useAuth();
-  if (user?.type === "admin") return <Navigate to="/admin/verifications" replace />;
+  if (user?.type === "admin") return <Navigate to="/admin" replace />;
   return user?.type === "factory" ? <FactoryDashboard /> : <WorkerDashboard />;
 }

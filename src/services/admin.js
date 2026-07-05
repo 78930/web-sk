@@ -21,6 +21,10 @@ export async function bootstrapAdmin({ secret, name, phone }) {
   });
 }
 
+export async function getAdminStats({ token }) {
+  return apiRequest("/api/admin/stats", { token });
+}
+
 export async function getWorkerDocuments({ token, workerId }) {
   return apiRequest(`/api/admin/workers/${workerId}/documents`, { token });
 }

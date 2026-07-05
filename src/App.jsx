@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
+import AdminLayout from "./components/layout/AdminLayout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 import Home from "./pages/Home";
@@ -14,13 +15,15 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import WorkerDetail from "./pages/WorkerDetail";
 import SavedJobs from "./pages/SavedJobs";
+import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerifications from "./pages/AdminVerifications";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
-    <Layout>
-      <Routes>
+    <Routes>
+      {/* Public routes — wrapped in Navbar + Footer */}
+      <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/features" element={<Features />} />
@@ -61,16 +64,22 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/verifications"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminVerifications />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Layout>
+      </Route>
+
+      {/* Admin routes — wrapped in AdminLayout (sidebar, no public Navbar) */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="verifications" element={<AdminVerifications />} />
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
