@@ -99,6 +99,8 @@ export function mapWorkerProfile(item) {
     salaryMin: Number(item?.salaryMin || 0),
     availability: item?.availability || "",
     isOpenToWork: item?.isOpenToWork ?? true,
+    verificationStatus: item?.verificationStatus ?? "UNVERIFIED",
+    verificationNote: item?.verificationNote ?? "",
   };
 }
 

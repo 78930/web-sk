@@ -52,6 +52,18 @@ export async function loginWithOtp({ phone, otp }) {
   };
 }
 
+export async function adminLogin({ phone, secret }) {
+  const auth = await apiRequest("/api/admin/login", {
+    method: "POST",
+    body: { phone, secret },
+  });
+  return {
+    token: auth.token,
+    user: mapAuthUser({ user: auth.user, profile: null }),
+    profile: null,
+  };
+}
+
 export async function getMe(token) {
   const result = await apiRequest("/api/auth/me", { token });
   const type = result.user.role === "FACTORY" ? "factory" : result.user.role === "ADMIN" ? "admin" : "worker";

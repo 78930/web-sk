@@ -4,6 +4,7 @@ import {
   register as registerService,
   loginWithOtp as loginWithOtpService,
   requestLoginOtp as requestLoginOtpService,
+  adminLogin as adminLoginService,
   getMe,
 } from "../services/auth";
 import { clearSession, loadSession, saveSession } from "../lib/storage";
@@ -52,6 +53,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback((payload) => loginService(payload).then(persist), [persist]);
+  const loginAsAdmin = useCallback((payload) => adminLoginService(payload).then(persist), [persist]);
   const register = useCallback((payload) => registerService(payload).then(persist), [persist]);
   const loginWithOtp = useCallback(
     (payload) => loginWithOtpService(payload).then(persist),
@@ -84,13 +86,14 @@ export function AuthProvider({ children }) {
       initializing,
       isAuthenticated: Boolean(token && user),
       login,
+      loginAsAdmin,
       register,
       loginWithOtp,
       requestLoginOtp,
       refreshProfile,
       logout,
     }),
-    [token, user, profile, initializing, login, register, loginWithOtp, requestLoginOtp, refreshProfile, logout]
+    [token, user, profile, initializing, login, loginAsAdmin, register, loginWithOtp, requestLoginOtp, refreshProfile, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

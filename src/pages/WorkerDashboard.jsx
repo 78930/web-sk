@@ -195,6 +195,39 @@ export default function WorkerDashboard() {
                 ) : null}
               </div>
 
+              {/* Verification status banner */}
+              {profile?.verificationStatus === "VERIFIED" && (
+                <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+                  <svg viewBox="0 0 20 20" fill="#D97706" className="h-5 w-5 shrink-0">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Profile Verified</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400">Your identity has been verified by Sketu admin</p>
+                  </div>
+                </div>
+              )}
+              {profile?.verificationStatus === "PENDING" && (
+                <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
+                  <Icon.Clock className="h-5 w-5 shrink-0 text-slate-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Verification Pending</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Admin is reviewing your documents</p>
+                  </div>
+                </div>
+              )}
+              {profile?.verificationStatus === "REJECTED" && (
+                <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-red-50 px-4 py-3 dark:bg-red-900/20">
+                  <Icon.Alert className="h-5 w-5 shrink-0 text-red-500" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-700 dark:text-red-300">Verification Rejected</p>
+                    {profile?.verificationNote && (
+                      <p className="text-xs text-red-600 dark:text-red-400">{profile.verificationNote}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {saveMsg ? <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">{saveMsg}</p> : null}
 
               {!editing ? (
