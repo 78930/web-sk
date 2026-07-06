@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/ui/Seo";
 import Icon from "../components/ui/Icons";
@@ -14,11 +14,11 @@ export default function AdminLogin() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
-  // Already logged in as admin
-  if (isAuthenticated && user?.type === "admin") {
-    navigate("/admin", { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated && user?.type === "admin") {
+      navigate("/admin", { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const submit = async (e) => {
     e.preventDefault();

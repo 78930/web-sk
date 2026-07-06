@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   const [recent, setRecent] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingRecent, setLoadingRecent] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -68,8 +69,8 @@ export default function AdminDashboard() {
       ]);
       setStats(s);
       setRecent(r.items || []);
-    } catch {
-      // ignore
+    } catch (err) {
+      setLoadError(err?.message || "Failed to load dashboard data. Your session may have expired.");
     } finally {
       setLoadingStats(false);
       setLoadingRecent(false);
@@ -82,6 +83,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-8">
+      {loadError && (
+        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+          {loadError}
+        </div>
+      )}
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">

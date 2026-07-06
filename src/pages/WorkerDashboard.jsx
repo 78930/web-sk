@@ -45,22 +45,20 @@ export default function WorkerDashboard() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
 
-  const load = () => {
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setError(null);
     Promise.allSettled([getWorkerProfile(token), listMyApplications(token)])
       .then(([profileResult, appsResult]) => {
+        if (cancelled) return;
         if (profileResult.status === "fulfilled") setProfile(profileResult.value);
         else setError(profileResult.reason?.message || "Failed to load profile");
         if (appsResult.status === "fulfilled") setApps(appsResult.value);
       })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
+      .finally(() => { if (!cancelled) setLoading(false); });
     setSavedCount(listSavedJobs().length);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => { cancelled = true; };
   }, [token]);
 
   const startEdit = () => {

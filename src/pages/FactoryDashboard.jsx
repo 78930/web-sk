@@ -61,6 +61,13 @@ export default function FactoryDashboard() {
     e.preventDefault();
     setPosting(true);
     setPostMsg(null);
+    const payMin = Number(job.payMin) || 0;
+    const payMax = Number(job.payMax) || 0;
+    if (payMax > 0 && payMin > payMax) {
+      setPostMsg("Minimum pay cannot exceed maximum pay.");
+      setPosting(false);
+      return;
+    }
     try {
       await createJob(token, {
         title: job.title,
@@ -68,8 +75,8 @@ export default function FactoryDashboard() {
         area: job.area,
         shift: job.shift,
         skillsRequired: toArr(job.skillsRequired),
-        payMin: Number(job.payMin) || 0,
-        payMax: Number(job.payMax) || 0,
+        payMin,
+        payMax,
         employmentType: job.employmentType,
       });
       setJob(BLANK_JOB);

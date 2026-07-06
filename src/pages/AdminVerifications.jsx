@@ -96,6 +96,7 @@ function DocumentsModal({ workerId, workerName, onClose }) {
       const blob = new Blob([bytes], { type: res.mimeType });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } catch {
       alert("Could not load document. Please try again.");
     } finally {
