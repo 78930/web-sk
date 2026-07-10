@@ -21,15 +21,18 @@ export default function Register() {
   const [role, setRole] = useState("worker");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
   const submit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
     setBusy(true);
     try {
-      await register({ role, name: name.trim(), phone: phone.trim() });
+      await register({ role, name: name.trim(), phone: phone.trim(), password });
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(cleanError(err.message));
@@ -49,7 +52,7 @@ export default function Register() {
                 Join Sketu in under a minute
               </h1>
               <p className="mt-3 text-slate-600 dark:text-slate-300">
-                No passwords to remember — we verify you by phone. Pick your role to get started.
+                Create a secure account with your phone number and password. Pick your role to get started.
               </p>
               <ul className="mt-8 space-y-3">
                 {BENEFITS[role].map((b) => (
@@ -107,6 +110,25 @@ export default function Register() {
                   title="Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9"
                   required
                 />
+                <div className="relative">
+                  <TextField
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    minLength={6}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <Icon.EyeOff className="h-4 w-4" /> : <Icon.Eye className="h-4 w-4" />}
+                  </button>
+                </div>
                 <button type="submit" disabled={busy} className="btn-primary w-full">
                   {busy ? "Creating account…" : "Create account"}
                 </button>

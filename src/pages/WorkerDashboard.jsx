@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Seo from "../components/ui/Seo";
 import Icon from "../components/ui/Icons";
@@ -6,8 +6,9 @@ import Pill, { StatusPill } from "../components/ui/Pill";
 import { TextField, TextArea } from "../components/ui/Field";
 import { Loading, EmptyState, ErrorState } from "../components/ui/States";
 import { useAuth } from "../context/AuthContext";
-import { getWorkerProfile, updateWorkerProfile } from "../services/workers";
-import { listMyApplications } from "../services/applications";
+import { getWorkerProfile, updateWorkerProfile, requestVerification, listMyDocuments, getDocument, uploadDocument, deleteDocument } from "../services/workers";
+import { listMyApplications, respondToHireOffer } from "../services/applications";
+import { uploadProfilePhoto } from "../services/auth";
 import { listSavedJobs } from "../services/savedJobs";
 
 function csv(arr) {
@@ -32,8 +33,30 @@ function profileCompleteness(p) {
   return { pct: Math.round((done / checks.length) * 100), missing };
 }
 
+const DOC_LABELS = {
+  AADHAAR: "Aadhaar Card",
+  PAN: "PAN Card",
+  DRIVING_LICENSE: "Driving Licence",
+  BANK_PASSBOOK: "Bank Passbook",
+  RESUME_PDF: "Resume / CV",
+};
+const DOC_TYPES = Object.keys(DOC_LABELS);
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = result.split(",")[1];
+      resolve({ base64, mimeType: file.type || "image/jpeg" });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function WorkerDashboard() {
-  const { token, user } = useAuth();
+  const { token, user, refreshProfile } = useAuth();
   const [profile, setProfile] = useState(null);
   const [apps, setApps] = useState([]);
   const [savedCount, setSavedCount] = useState(() => listSavedJobs().length);
@@ -44,6 +67,26 @@ export default function WorkerDashboard() {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
+
+  // Photo upload
+  const photoInputRef = useRef(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoMsg, setPhotoMsg] = useState(null);
+
+  // Verification
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyMsg, setVerifyMsg] = useState(null);
+
+  // Hire offer respond
+  const [hireResponding, setHireResponding] = useState(null);
+  const [hireMsg, setHireMsg] = useState(null);
+
+  // Documents
+  const [docs, setDocs] = useState([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [docUploading, setDocUploading] = useState(null);
+  const docInputRef = useRef(null);
+  const [pendingDocType, setPendingDocType] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +103,90 @@ export default function WorkerDashboard() {
     setSavedCount(listSavedJobs().length);
     return () => { cancelled = true; };
   }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    setDocsLoading(true);
+    listMyDocuments(token).then(setDocs).catch(() => {}).finally(() => setDocsLoading(false));
+  }, [token]);
+
+  async function handlePhotoUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    setPhotoMsg(null);
+    try {
+      const { base64, mimeType } = await readFileAsBase64(file);
+      await uploadProfilePhoto(token, base64, mimeType);
+      await refreshProfile();
+      setPhotoMsg("Photo updated.");
+    } catch (err) {
+      setPhotoMsg(err.message || "Photo upload failed.");
+    } finally {
+      setPhotoUploading(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  }
+
+  async function handleRequestVerification() {
+    setVerifyBusy(true);
+    setVerifyMsg(null);
+    try {
+      const res = await requestVerification(token);
+      setVerifyMsg(res.message || "Verification request submitted.");
+      setProfile((p) => p ? { ...p, verificationStatus: "PENDING" } : p);
+    } catch (err) {
+      setVerifyMsg(err.message || "Could not submit request.");
+    } finally {
+      setVerifyBusy(false);
+    }
+  }
+
+  async function handleHireRespond(applicationId, decision) {
+    setHireResponding(applicationId);
+    setHireMsg(null);
+    try {
+      await respondToHireOffer(token, applicationId, decision);
+      setApps((prev) => prev.map((a) =>
+        a.id === applicationId ? { ...a, hireStatus: decision } : a
+      ));
+      setHireMsg(decision === "ACCEPTED" ? "Offer accepted! Contact the factory HR to confirm details." : "Offer declined.");
+    } catch (err) {
+      setHireMsg(err.message || "Could not respond to offer.");
+    } finally {
+      setHireResponding(null);
+    }
+  }
+
+  async function handleDocUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file || !pendingDocType) return;
+    setDocUploading(pendingDocType);
+    try {
+      const { base64, mimeType } = await readFileAsBase64(file);
+      await uploadDocument(token, pendingDocType, base64, mimeType);
+      const fresh = await listMyDocuments(token);
+      setDocs(fresh);
+    } catch (err) {
+      // silently keep existing docs on error
+    } finally {
+      setDocUploading(null);
+      setPendingDocType(null);
+      if (docInputRef.current) docInputRef.current.value = "";
+    }
+  }
+
+  async function handleDocDelete(type) {
+    setDocUploading(type);
+    try {
+      await deleteDocument(token, type);
+      setDocs((prev) => prev.filter((d) => d.type !== type));
+    } catch {
+      // ignore
+    } finally {
+      setDocUploading(null);
+    }
+  }
 
   const startEdit = () => {
     setSaveMsg(null);
@@ -182,7 +309,7 @@ export default function WorkerDashboard() {
       <section className="section pt-10">
         <div className="container-page grid gap-8 lg:grid-cols-3">
           {/* Profile */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
             <div className="card p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">My profile</h2>
@@ -191,6 +318,37 @@ export default function WorkerDashboard() {
                     Edit
                   </button>
                 ) : null}
+              </div>
+
+              {/* Profile photo */}
+              <div className="mt-4 flex items-center gap-4">
+                <div className="relative">
+                  {user?.photoBase64 ? (
+                    <img
+                      src={`data:${user.photoMimeType || "image/jpeg"};base64,${user.photoBase64}`}
+                      alt="Profile"
+                      className="h-16 w-16 rounded-full object-cover ring-2 ring-brand-200 dark:ring-brand-800"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 text-xl font-bold text-brand-700 dark:bg-brand-900/50 dark:text-brand-200">
+                      {(profile?.fullName || user?.name || "W").split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => photoInputRef.current?.click()}
+                    disabled={photoUploading}
+                    className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white shadow-sm hover:bg-brand-700"
+                    title="Change photo"
+                  >
+                    <Icon.Camera className="h-3 w-3" />
+                  </button>
+                  <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-white">{profile?.fullName || user?.name}</p>
+                  {profile?.headline ? <p className="text-xs text-slate-500 dark:text-slate-400">{profile.headline}</p> : null}
+                  {photoMsg ? <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">{photoMsg}</p> : null}
+                </div>
               </div>
 
               {/* Verification status banner */}
@@ -223,6 +381,20 @@ export default function WorkerDashboard() {
                       <p className="text-xs text-red-600 dark:text-red-400">{profile.verificationNote}</p>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Request verification button */}
+              {(profile?.verificationStatus === "UNVERIFIED" || profile?.verificationStatus === "REJECTED") && (
+                <div className="mt-4">
+                  <button
+                    onClick={handleRequestVerification}
+                    disabled={verifyBusy}
+                    className="btn-primary w-full text-sm py-2"
+                  >
+                    {verifyBusy ? "Submitting…" : "Request Verification"}
+                  </button>
+                  {verifyMsg ? <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{verifyMsg}</p> : null}
                 </div>
               )}
 
@@ -267,11 +439,76 @@ export default function WorkerDashboard() {
                 </form>
               )}
             </div>
+
+            {/* Documents */}
+            <div className="card p-6">
+              <input ref={docInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleDocUpload} />
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">My documents</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Upload to support verification</p>
+              <div className="mt-4 space-y-3">
+                {docsLoading ? (
+                  <p className="text-sm text-slate-400">Loading…</p>
+                ) : DOC_TYPES.map((type) => {
+                  const uploaded = docs.find((d) => d.type === type);
+                  const busy = docUploading === type;
+                  return (
+                    <div key={type} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/50">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon.Document className={`h-4 w-4 shrink-0 ${uploaded ? "text-emerald-500" : "text-slate-400"}`} />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{DOC_LABELS[type]}</span>
+                        {uploaded ? (
+                          <span className="shrink-0 text-xs text-emerald-600 dark:text-emerald-400">✓ Uploaded</span>
+                        ) : null}
+                      </div>
+                      <div className="flex shrink-0 gap-2">
+                        {uploaded ? (
+                          <>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const full = await getDocument(token, type);
+                                  const url = `data:${full.mimeType};base64,${full.imageBase64}`;
+                                  window.open(url, "_blank");
+                                } catch { /* ignore */ }
+                              }}
+                              className="rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-brand-600 shadow-sm ring-1 ring-slate-200 hover:bg-brand-50 dark:bg-slate-700 dark:text-brand-300 dark:ring-slate-600"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleDocDelete(type)}
+                              disabled={busy}
+                              className="rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-red-500 shadow-sm ring-1 ring-slate-200 hover:bg-red-50 dark:bg-slate-700 dark:ring-slate-600"
+                            >
+                              {busy ? "…" : <Icon.Trash className="h-3.5 w-3.5" />}
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => { setPendingDocType(type); docInputRef.current?.click(); }}
+                            disabled={busy}
+                            className="rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-brand-50 hover:text-brand-600 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600"
+                          >
+                            {busy ? "Uploading…" : <span className="flex items-center gap-1"><Icon.Upload className="h-3 w-3" />Upload</span>}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Applications */}
           <div className="lg:col-span-2">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">My applications</h2>
+            {hireMsg ? (
+              <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                {hireMsg}
+                <button onClick={() => setHireMsg(null)} className="ml-3 font-semibold hover:underline">Dismiss</button>
+              </div>
+            ) : null}
             <div className="mt-4 space-y-4">
               {apps.length === 0 ? (
                 <EmptyState
@@ -307,6 +544,30 @@ export default function WorkerDashboard() {
                           </span>
                         ) : null}
                       </div>
+                    ) : null}
+                    {a.status === "HIRED" && a.hireStatus === "OFFERED" ? (
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() => handleHireRespond(a.id, "ACCEPTED")}
+                          disabled={hireResponding === a.id}
+                          className="flex-1 rounded-xl bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+                        >
+                          {hireResponding === a.id ? "…" : "Accept offer"}
+                        </button>
+                        <button
+                          onClick={() => handleHireRespond(a.id, "REJECTED")}
+                          disabled={hireResponding === a.id}
+                          className="flex-1 rounded-xl border border-slate-200 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:text-slate-300"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    ) : null}
+                    {a.status === "HIRED" && a.hireStatus === "ACCEPTED" ? (
+                      <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">✓ Offer accepted</p>
+                    ) : null}
+                    {a.status === "HIRED" && a.hireStatus === "REJECTED" ? (
+                      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Offer declined</p>
                     ) : null}
                     {a.note ? (
                       <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">

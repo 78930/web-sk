@@ -33,3 +33,28 @@ export async function listMyApplications(token) {
   const response = await apiRequest("/api/workers/me/applications", { token });
   return response.items.map(mapJobApplication);
 }
+
+export async function requestVerification(token) {
+  return apiRequest("/api/workers/me/request-verification", { method: "POST", token });
+}
+
+export async function listMyDocuments(token) {
+  const response = await apiRequest("/api/workers/me/documents", { token });
+  return response.items;
+}
+
+export async function uploadDocument(token, type, imageBase64, mimeType = "image/jpeg") {
+  return apiRequest("/api/workers/me/documents", {
+    method: "POST",
+    token,
+    body: { type, imageBase64, mimeType },
+  });
+}
+
+export async function getDocument(token, type) {
+  return apiRequest(`/api/workers/me/documents/${type}`, { token });
+}
+
+export async function deleteDocument(token, type) {
+  return apiRequest(`/api/workers/me/documents/${type}`, { method: "DELETE", token });
+}

@@ -39,6 +39,8 @@ export default function Login() {
   const [role, setRole] = useState("worker");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -50,7 +52,7 @@ export default function Login() {
     setError(null);
     setBusy(true);
     try {
-      await login({ role, name: name.trim(), phone: phone.trim() });
+      await login({ role, name: name.trim(), phone: phone.trim(), password });
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed");
@@ -143,6 +145,24 @@ export default function Login() {
                   </div>
                   <TextField label="Full name" value={name} onChange={(e) => setName(e.target.value)} placeholder="As registered" required />
                   <TextField label="Phone number" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="10-digit number" required />
+                  <div className="relative">
+                    <TextField
+                      label="Password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-3 top-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <Icon.EyeOff className="h-4 w-4" /> : <Icon.Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   <button type="submit" disabled={busy} className="btn-primary w-full">
                     {busy ? "Logging in…" : "Log in"}
                   </button>

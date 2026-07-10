@@ -26,6 +26,8 @@ export function mapAuthUser(input) {
     phone: input.user.phone,
     type,
     role: input.user.role,
+    photoBase64: input.user.photoBase64 || null,
+    photoMimeType: input.user.photoMimeType || "image/jpeg",
   };
 }
 
@@ -82,6 +84,8 @@ export function mapWorker(item) {
     isOpenToWork: item?.isOpenToWork ?? true,
     verificationStatus: item?.verificationStatus ?? "UNVERIFIED",
     verificationNote: item?.verificationNote ?? "",
+    photoBase64: item?.photoBase64 || null,
+    photoMimeType: item?.photoMimeType || "image/jpeg",
   };
 }
 

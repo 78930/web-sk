@@ -89,6 +89,24 @@ export const Icon = {
   Bookmark: (p) => (
     <svg {...base} {...p}><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" /></svg>
   ),
+  Eye: (p) => (
+    <svg {...base} {...p}><path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
+  ),
+  EyeOff: (p) => (
+    <svg {...base} {...p}><path d="M17.9 17.9A10.5 10.5 0 0112 19C5 19 1 12 1 12a18.5 18.5 0 015.1-5.9M9.9 4.2A9.8 9.8 0 0112 4c7 0 11 8 11 8a18.6 18.6 0 01-2.2 3.2" /><path d="M1 1l22 22" /></svg>
+  ),
+  Upload: (p) => (
+    <svg {...base} {...p}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" /></svg>
+  ),
+  Trash: (p) => (
+    <svg {...base} {...p}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6" /><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" /></svg>
+  ),
+  Document: (p) => (
+    <svg {...base} {...p}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+  ),
+  Camera: (p) => (
+    <svg {...base} {...p}><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>
+  ),
 };
 
 export default Icon;

@@ -35,6 +35,14 @@ export async function rejectApplication(token, applicationId) {
   return mapJobApplication(response);
 }
 
+export async function respondToHireOffer(token, applicationId, decision) {
+  return apiRequest(`/api/applications/${applicationId}/respond`, {
+    method: "PATCH",
+    token,
+    body: { decision },
+  });
+}
+
 export async function shortlistWorkerForJob(token, jobId, workerProfileId) {
   const response = await apiRequest(`/api/jobs/${jobId}/shortlist-worker`, {
     method: "POST",

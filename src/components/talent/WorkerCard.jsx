@@ -16,8 +16,18 @@ export default function WorkerCard({ worker, onShortlist, shortlisted }) {
   return (
     <div className="card card-hover flex flex-col p-5">
       <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-900/50 dark:text-brand-200">
-          {initials(worker.fullName) || "W"}
+        <div className="h-12 w-12 shrink-0">
+          {worker.photoBase64 ? (
+            <img
+              src={`data:${worker.photoMimeType || "image/jpeg"};base64,${worker.photoBase64}`}
+              alt={worker.fullName}
+              className="h-12 w-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-900/50 dark:text-brand-200">
+              {initials(worker.fullName) || "W"}
+            </div>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">

@@ -6,10 +6,18 @@ function apiRole(role) {
   return role === "factory" ? "FACTORY" : "WORKER";
 }
 
-export async function login({ role, name, phone }) {
+export async function uploadProfilePhoto(token, photoBase64, mimeType = "image/jpeg") {
+  return apiRequest("/api/auth/me/photo", {
+    method: "POST",
+    token,
+    body: { photoBase64, mimeType },
+  });
+}
+
+export async function login({ role, name, phone, password }) {
   const auth = await apiRequest("/api/auth/login", {
     method: "POST",
-    body: { role: apiRole(role), name, phone },
+    body: { phone, password },
   });
   const me = await getMe(auth.token);
   return {
@@ -19,10 +27,10 @@ export async function login({ role, name, phone }) {
   };
 }
 
-export async function register({ role, name, phone }) {
+export async function register({ role, name, phone, password }) {
   const auth = await apiRequest("/api/auth/register", {
     method: "POST",
-    body: { role: apiRole(role), name, phone },
+    body: { role: apiRole(role), name, phone, password },
   });
   const me = await getMe(auth.token);
   return {
