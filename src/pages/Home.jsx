@@ -75,7 +75,33 @@ export default function Home() {
 
   return (
     <>
-      <Seo path="/" />
+      <Seo
+        path="/"
+        keywords="factory jobs India, industrial jobs near me, hire factory workers, job search India, Sketu, worker recruitment India"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "name": "Sketu",
+              "url": "https://www.sketu.in",
+              "logo": "https://www.sketu.in/sketu-logo.jpeg",
+              "contactPoint": { "@type": "ContactPoint", "email": "info.sketu@gmail.com", "contactType": "customer support" },
+              "sameAs": []
+            },
+            {
+              "@type": "WebSite",
+              "name": "Sketu",
+              "url": "https://www.sketu.in",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://www.sketu.in/jobs?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            }
+          ]
+        }}
+      />
 
       {/* Hero */}
       <section className="relative overflow-hidden">

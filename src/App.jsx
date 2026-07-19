@@ -20,6 +20,7 @@ import AdminVerifications from "./pages/AdminVerifications";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import DeleteAccount from "./pages/DeleteAccount";
 
 export default function App() {
   return (
@@ -57,6 +58,7 @@ export default function App() {
           }
         />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/delete-account" element={<DeleteAccount />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin/login" element={<AdminLogin />} />

@@ -11,7 +11,19 @@ const VALUES = [
 export default function About() {
   return (
     <>
-      <Seo title="About" path="/about" description="Sketu is a hiring platform built for factories and the industrial workforce." />
+      <Seo
+        title="About"
+        path="/about"
+        description="Sketu is a hiring platform built for factories and the industrial workforce in India. Learn our story and mission."
+        keywords="about Sketu, industrial hiring platform India, factory recruitment app, Sketu mission"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About Sketu",
+          "url": "https://www.sketu.in/about",
+          "description": "Sketu is a hiring platform built for factories and the industrial workforce in India."
+        }}
+      />
 
       <section className="relative overflow-hidden border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
         <div className="container-page py-20 text-center">

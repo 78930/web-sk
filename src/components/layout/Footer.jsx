@@ -59,6 +59,9 @@ export default function Footer() {
             <Link to="/privacy-policy" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
               Privacy Policy
             </Link>
+            <Link to="/delete-account" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+              Delete Account
+            </Link>
             <p>Made for India's industrial workforce.</p>
           </div>
         </div>

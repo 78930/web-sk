@@ -83,7 +83,20 @@ export default function Jobs() {
 
   return (
     <>
-      <Seo title="Factory jobs" path="/jobs" description="Browse open factory jobs by area, shift, role and skill on Sketu." />
+      <Seo
+        title="Factory jobs"
+        path="/jobs"
+        description="Browse open factory jobs by area, shift, role and skill on Sketu. Find industrial jobs near you in India."
+        keywords="factory jobs, industrial jobs India, factory worker jobs, jobs near me, shift jobs, manufacturing jobs India"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "JobPosting",
+          "title": "Factory & Industrial Jobs",
+          "description": "Browse open factory and industrial jobs across India on Sketu.",
+          "hiringOrganization": { "@type": "Organization", "name": "Sketu", "sameAs": "https://www.sketu.in" },
+          "jobLocation": { "@type": "Place", "address": { "@type": "PostalAddress", "addressCountry": "IN" } }
+        }}
+      />
 
       {/* Search bar */}
       <section className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
