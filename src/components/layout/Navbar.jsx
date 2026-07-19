@@ -14,13 +14,12 @@ const NAV = [
 
 function Brand() {
   return (
-    <Link to="/" className="flex items-center gap-2.5 group">
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-500 text-white shadow-sm transition-shadow group-hover:shadow-accent">
-        <Icon.Briefcase className="h-5 w-5" />
-      </span>
-      <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
-        Sketu
-      </span>
+    <Link to="/" className="flex items-center gap-2 group">
+      <img
+        src="/sketu-logo.jpeg"
+        alt="Sketu"
+        className="h-9 w-auto object-contain"
+      />
     </Link>
   );
 }

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import Icon from "../ui/Icons";
 
 const COLS = [
   {
@@ -29,10 +28,7 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-                <Icon.Briefcase className="h-5 w-5" />
-              </span>
-              <span className="text-lg font-extrabold text-slate-900 dark:text-white">Sketu</span>
+              <img src="/sketu-logo.jpeg" alt="Sketu" className="h-9 w-auto object-contain" />
             </div>
             <p className="mt-3 max-w-sm text-sm text-slate-500 dark:text-slate-400">
               The hiring platform built for factories and the industrial workforce. Post a job,
@@ -59,7 +55,12 @@ export default function Footer() {
         </div>
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-slate-200 pt-6 text-sm text-slate-400 sm:flex-row dark:border-slate-800">
           <p>© {new Date().getFullYear()} Sketu. All rights reserved.</p>
-          <p>Made for India's industrial workforce.</p>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy-policy" className="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <p>Made for India's industrial workforce.</p>
+          </div>
         </div>
       </div>
     </footer>
